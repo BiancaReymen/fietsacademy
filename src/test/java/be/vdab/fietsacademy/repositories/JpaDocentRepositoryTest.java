@@ -15,6 +15,7 @@ import org.springframework.test.context.junit4.AbstractTransactionalJUnit4Spring
 import org.springframework.test.context.junit4.SpringRunner;
 
 import be.vdab.fietsacademy.entities.Docent;
+import be.vdab.fietsacademy.enums.Geslacht;
 
 @RunWith(SpringRunner.class)
 @DataJpaTest
@@ -28,6 +29,9 @@ public class JpaDocentRepositoryTest extends AbstractTransactionalJUnit4SpringCo
 	private long idVanTestMan() {
 		return super.jdbcTemplate.queryForObject("select id from docenten where voornaam = 'testM'", Long.class);
 	}
+	private long idVanTestVrouw() {
+		return super.jdbcTemplate.queryForObject("select id from docenten where voornaam = 'testV'", Long.class);
+	}
 	
 	@Test
 	public void read() {
@@ -37,6 +41,14 @@ public class JpaDocentRepositoryTest extends AbstractTransactionalJUnit4SpringCo
 	@Test
 	public void readOnbestaandeDocent() {
 		assertFalse(repository.read(-1).isPresent());
+	}
+	@Test
+	public void man() {
+		assertEquals(Geslacht.MAN, repository.read(idVanTestMan()).get().getGeslacht());
+	}
+	@Test
+	public void vrouw() {
+		assertEquals(Geslacht.VROUW, repository.read(idVanTestVrouw()).get().getGeslacht());
 	}
 }
 
