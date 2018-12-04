@@ -6,6 +6,8 @@ import java.math.BigDecimal;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
@@ -15,7 +17,7 @@ import be.vdab.fietsacademy.enums.Geslacht;
 @Table(name = "docenten")
 public class Docent implements Serializable {
 	private static final long serialVersionUID = 1L;
-	@Id
+	@Id @GeneratedValue(strategy=GenerationType.IDENTITY)
 	private long id;
 	private String voornaam;
 	private String familienaam;
@@ -25,15 +27,26 @@ public class Docent implements Serializable {
 	@Enumerated(EnumType.STRING)
 	private Geslacht geslacht;
 	
+	protected Docent() {
+		super();
+	}
+	
+	public Docent(String voornaam, String familienaam, BigDecimal wedde, String emailAdres, Geslacht geslacht) {
+		super();
+		this.voornaam = voornaam;
+		this.familienaam = familienaam;
+		this.wedde = wedde;
+		this.emailAdres = emailAdres;
+		this.geslacht = geslacht;
+	}
+	
 	public Geslacht getGeslacht() {
 		return geslacht;
 	}
 	public long getId() {
 		return id;
 	}
-	protected Docent() {
-		super();
-	}
+	
 	public String getVoornaam() {
 		return voornaam;
 	}
@@ -46,8 +59,5 @@ public class Docent implements Serializable {
 	public String getEmailAdres() {
 		return emailAdres;
 	}
-	
-	
-	
-	
+
 }
