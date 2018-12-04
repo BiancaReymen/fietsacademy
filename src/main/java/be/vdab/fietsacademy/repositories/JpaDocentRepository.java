@@ -21,7 +21,7 @@ class JpaDocentRepository implements DocentRepository {
 	}
 	@Override
 	public void create (Docent docent)  {
-		throw new UnsupportedOperationException();
+		manager.persist(docent);
 	}
 
 }
