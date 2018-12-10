@@ -27,6 +27,8 @@ import be.vdab.fietsacademy.entities.IndividueleCursus;
 @Sql("/insertCursus.sql")
 public class JpaCursusRepositoryTest extends AbstractTransactionalJUnit4SpringContextTests{
 	private static final String CURSUSSEN = "cursussen";
+	private static final String GROEPS_CURSUSSEN = "groepscursussen";
+	private static final String INDIVIDUELE_CURSUSSEN = "individuelecursussen";
 	private static final LocalDate EEN_DATUM = LocalDate.of(2019, 1, 1);
 	
 	@Autowired
@@ -50,18 +52,24 @@ public class JpaCursusRepositoryTest extends AbstractTransactionalJUnit4SpringCo
 	}
 	@Test
 	public void createGroepsCursus() {
-		int aantalGroepsCursussen = super.countRowsInTableWhere(CURSUSSEN, "soort='G'");
+		int aantalCursussen = super.countRowsInTable(CURSUSSEN);
+		int aantalGroepsCursussen = super.countRowsInTable(GROEPS_CURSUSSEN);
 		GroepsCursus cursus = new GroepsCursus("testGroep2", EEN_DATUM, EEN_DATUM);
 		repository.create(cursus);
-		assertEquals(aantalGroepsCursussen+1, super.countRowsInTableWhere(CURSUSSEN, "soort='G'"));
+		assertEquals(aantalCursussen+1, super.countRowsInTable(CURSUSSEN));
+		assertEquals(aantalGroepsCursussen+1, super.countRowsInTable(GROEPS_CURSUSSEN));
 		assertEquals(1, super.countRowsInTableWhere(CURSUSSEN, "id=" + cursus.getId()));
+		assertEquals(1, super.countRowsInTableWhere(GROEPS_CURSUSSEN, "id=" + cursus.getId()));
 	}
 	@Test
 	public void createIndividueleCursus() {
-		int aantalIndividueleCursussen = super.countRowsInTableWhere(CURSUSSEN, "soort='I'");
+		int aantalCursussen = super.countRowsInTable(CURSUSSEN);
+		int aantalIndividueleCursussen = super.countRowsInTable(INDIVIDUELE_CURSUSSEN);
 		IndividueleCursus cursus = new IndividueleCursus("testIndividueel2", 7);
 		repository.create(cursus);
-		assertEquals(aantalIndividueleCursussen+1, super.countRowsInTableWhere(CURSUSSEN, "soort='I'"));
+		assertEquals(aantalCursussen+1, super.countRowsInTable(CURSUSSEN));
+		assertEquals(aantalIndividueleCursussen+1, super.countRowsInTable(INDIVIDUELE_CURSUSSEN));
 		assertEquals(1, super.countRowsInTableWhere(CURSUSSEN, "id=" + cursus.getId()));
+		assertEquals(1, super.countRowsInTableWhere(INDIVIDUELE_CURSUSSEN, "id=" + cursus.getId()));
 	}
 }

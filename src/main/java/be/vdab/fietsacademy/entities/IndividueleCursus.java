@@ -1,10 +1,11 @@
 package be.vdab.fietsacademy.entities;
 
-import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
+import javax.persistence.Table;
 
 @Entity
-@DiscriminatorValue("I")
+//@DiscriminatorValue("I")
+@Table(name = "individuelecursussen")
 public class IndividueleCursus extends Cursus {
 	private static final long serialVersionUID = 1L;
 	
