@@ -1,6 +1,7 @@
 package be.vdab.fietsacademy.repositories;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -10,13 +11,13 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit4.AbstractTransactionalJUnit4SpringContextTests;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import be.vdab.fietsacademy.entities.Campus;
 import be.vdab.fietsacademy.valueobjects.Adres;
+import be.vdab.fietsacademy.valueobjects.TelefoonNr;
 
 @RunWith(SpringRunner.class)
 @DataJpaTest
@@ -50,5 +51,11 @@ public class JpaCampusRepositoryTest extends AbstractTransactionalJUnit4SpringCo
 		repository.create(campus);
 		assertEquals(aantalCampussen+1, super.countRowsInTable(CAMPUSSEN));
 		assertEquals(1, super.countRowsInTableWhere(CAMPUSSEN, "id="+campus.getId()));
+	}
+	@Test
+	public void telefoonNrsLezen() {
+		Campus campus = repository.read(idVanTestCampus()).get();
+		assertEquals(1, campus.getTelefoonNrs().size());
+		assertTrue(campus.getTelefoonNrs().contains(new TelefoonNr("1", false, "test")));
 	}
 }
