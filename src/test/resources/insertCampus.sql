@@ -1,0 +1,1 @@
+insert into campussen (naam, straat, huisnr, postcode, gemeente) values ('test', 'test', 'test', 'test', 'test')
