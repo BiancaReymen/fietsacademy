@@ -16,17 +16,17 @@ import be.vdab.fietsacademy.valueobjects.Adres;
 public class DocentTest {
 	private final static BigDecimal ORIGINELE_WEDDE = BigDecimal.valueOf(200);
 	private Docent docent1;
-	private Campus campus1;
+	private Campus campus1, campus2;
 	private Docent docent2;
 	private Docent nogEensDocent1;
 	
 	@Before
 	public void before() {
 		campus1 = new Campus("test", new Adres("test", "test", "test", "test"));
-//		docent1 = new Docent("test", "test", ORIGINELE_WEDDE, "test@fietsacademy.be", Geslacht.MAN, campus1);
-		docent1 = new Docent("test", "test", ORIGINELE_WEDDE, "test@fietsacademy.be", Geslacht.MAN);
-		docent2 = new Docent("test2", "test2", ORIGINELE_WEDDE, "test2@fietsacademy.be", Geslacht.MAN);
-		nogEensDocent1 = new Docent("test", "test", ORIGINELE_WEDDE, "test@fietsacademy.be", Geslacht.MAN);
+		campus2 = new Campus("test2", new Adres("test2", "test2", "test2", "test2"));
+		docent1 = new Docent("test", "test", ORIGINELE_WEDDE, "test@fietsacademy.be", Geslacht.MAN, campus1);
+		docent2 = new Docent("test2", "test2", ORIGINELE_WEDDE, "test2@fietsacademy.be", Geslacht.MAN, campus1);
+		nogEensDocent1 = new Docent("test", "test", ORIGINELE_WEDDE, "test@fietsacademy.be", Geslacht.MAN, campus1);
 		
 	}
 	@Test
@@ -89,8 +89,8 @@ public class DocentTest {
 	}
 	@Test
 	public void meerdereDocentenKunnenTotDezelfdeCampusBehoren() {
-		assertTrue(campus1.add(docent1));
-		assertTrue(campus1.add(docent2));
+		assertTrue(campus1.getDocenten().contains(docent1));
+		assertTrue(campus1.getDocenten().contains(docent2));
 	}
 	@Test
 	public void docentenZijnGelijkAlsHunEmailAdressenGelijkZijn() {
@@ -111,5 +111,18 @@ public class DocentTest {
 	@Test
 	public void gelijkeDocentenGevenDezelfdeHashCode() {
 		assertEquals(docent1.hashCode(), nogEensDocent1.hashCode());
+	}
+	@Test
+	public void docent1KomtVoorInCampus1() {
+		assertEquals(docent1.getCampus(), campus1);
+		assertEquals(2, campus1.getDocenten().size());
+		assertTrue(campus1.getDocenten().contains(docent1));
+	}
+	public void docent1VerhuistNaarCampus2() {
+		docent1.setCampus(campus2);
+		assertEquals(docent1.getCampus(), campus2);
+		assertEquals(1, campus1.getDocenten().size());
+		assertEquals(1, campus2.getDocenten().size());
+		assertTrue(campus2.getDocenten().contains(docent1));
 	}
 }
