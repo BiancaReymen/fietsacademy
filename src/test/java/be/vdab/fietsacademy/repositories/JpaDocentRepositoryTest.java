@@ -24,6 +24,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import be.vdab.fietsacademy.entities.Campus;
 import be.vdab.fietsacademy.entities.Docent;
+import be.vdab.fietsacademy.entities.Verantwoordelijkheid;
 import be.vdab.fietsacademy.enums.Geslacht;
 import be.vdab.fietsacademy.queryresult.AantalDocentenPerWedde;
 import be.vdab.fietsacademy.queryresult.IdEnEmailAdres;
@@ -33,10 +34,12 @@ import be.vdab.fietsacademy.valueobjects.Adres;
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = Replace.NONE)
 @Sql("/insertCampus.sql")
+@Sql("/insertVerantwoordelijkheid.sql")
 @Sql("/insertDocent.sql")
+@Sql("/insertDocentVerantwoordelijkheid.sql")
 @Import(JpaDocentRepository.class)
 public class JpaDocentRepositoryTest extends AbstractTransactionalJUnit4SpringContextTests {
-	
+
 	@Autowired
 	private JpaDocentRepository repository;
 	@Autowired
@@ -44,57 +47,66 @@ public class JpaDocentRepositoryTest extends AbstractTransactionalJUnit4SpringCo
 	private static final String DOCENTEN = "docenten";
 	private Docent docent;
 	private Campus campus;
-	
+
 	private long idVanTestMan() {
 		return super.jdbcTemplate.queryForObject("select id from docenten where voornaam = 'testM'", Long.class);
 	}
+
 	private long idVanTestVrouw() {
 		return super.jdbcTemplate.queryForObject("select id from docenten where voornaam = 'testV'", Long.class);
 	}
+
 	@Before
 	public void before() {
 		campus = new Campus("test", new Adres("test", "test", "test", "test"));
 		docent = new Docent("test", "test", BigDecimal.TEN, "test@fietsacademy.be", Geslacht.MAN, campus);
-	}	
+	}
+
 	@Test
 	public void read() {
 		Docent docent = repository.read(idVanTestMan()).get();
 		assertEquals("testM", docent.getVoornaam());
 	}
+
 	@Test
 	public void readOnbestaandeDocent() {
 		assertFalse(repository.read(-1).isPresent());
 	}
+
 	@Test
 	public void man() {
 		assertEquals(Geslacht.MAN, repository.read(idVanTestMan()).get().getGeslacht());
 	}
+
 	@Test
 	public void vrouw() {
 		assertEquals(Geslacht.VROUW, repository.read(idVanTestVrouw()).get().getGeslacht());
 	}
+
 	@Test
 	public void create() {
 		manager.persist(campus);
 		int aantalDocenten = super.countRowsInTable(DOCENTEN);
 		repository.create(docent);
 		manager.flush();
-		assertEquals(aantalDocenten +1 , super.countRowsInTable("docenten"));
+		assertEquals(aantalDocenten + 1, super.countRowsInTable("docenten"));
 		assertNotEquals(0, docent.getId());
 		assertEquals(1, super.countRowsInTableWhere(DOCENTEN, "id=" + docent.getId()));
-		assertEquals(campus.getId(), super.jdbcTemplate.queryForObject
-				("select campusid from docenten where id=?", Long.class, docent.getId()).longValue()); 
+		assertEquals(campus.getId(), super.jdbcTemplate
+				.queryForObject("select campusid from docenten where id=?", Long.class, docent.getId()).longValue());
 		assertTrue(campus.getDocenten().contains(docent));
 	}
-	@Test 
+
+	@Test
 	public void delete() {
 		long id = idVanTestMan();
 		int aantalDocenten = super.countRowsInTable(DOCENTEN);
 		repository.delete(id);
 		manager.flush();
-		assertEquals(aantalDocenten -1 , super.countRowsInTable("docenten"));
+		assertEquals(aantalDocenten - 1, super.countRowsInTable("docenten"));
 		assertEquals(0, super.countRowsInTableWhere(DOCENTEN, "id=" + docent.getId()));
 	}
+
 	@Test
 	public void findAll() {
 		List<Docent> docenten = repository.findAll();
@@ -105,6 +117,7 @@ public class JpaDocentRepositoryTest extends AbstractTransactionalJUnit4SpringCo
 			vorigeWedde = docent.getWedde();
 		}
 	}
+
 	@Test
 	public void findByWeddeBetween() {
 		BigDecimal duizend = BigDecimal.valueOf(1_000);
@@ -112,11 +125,12 @@ public class JpaDocentRepositoryTest extends AbstractTransactionalJUnit4SpringCo
 		List<Docent> docenten = repository.findByWeddeBetween(duizend, tweeduizend);
 		long aantalDocenten = super.countRowsInTableWhere(DOCENTEN, "wedde between 1000 and 2000");
 		assertEquals(aantalDocenten, docenten.size());
-		docenten.forEach(docent -> {assertTrue(docent.getWedde().compareTo(duizend) >= 0);
-									assertTrue(docent.getWedde().compareTo(tweeduizend) <= 0);
-									}
-						);
+		docenten.forEach(docent -> {
+			assertTrue(docent.getWedde().compareTo(duizend) >= 0);
+			assertTrue(docent.getWedde().compareTo(tweeduizend) <= 0);
+		});
 	}
+
 	@Test
 	public void findEmailAdressen() {
 		List<String> adressen = repository.findEmailAdressen();
@@ -124,6 +138,7 @@ public class JpaDocentRepositoryTest extends AbstractTransactionalJUnit4SpringCo
 		assertEquals(aantal, adressen.size());
 		adressen.forEach(adres -> assertTrue(adres.contains("@")));
 	}
+
 	@Test
 	public void findIdsEnEmailAdressen() {
 		List<IdEnEmailAdres> idsEnAdressen = repository.findIdsEnEmailAdressen();
@@ -133,45 +148,72 @@ public class JpaDocentRepositoryTest extends AbstractTransactionalJUnit4SpringCo
 	@Test
 	public void findGrootsteWedde() {
 		BigDecimal grootste = repository.findGrootsteWedde();
-		BigDecimal grootste2 = super.jdbcTemplate.queryForObject("select max(wedde) from docenten", BigDecimal.class); 
-		assertEquals(0 , grootste.compareTo(grootste2));
+		BigDecimal grootste2 = super.jdbcTemplate.queryForObject("select max(wedde) from docenten", BigDecimal.class);
+		assertEquals(0, grootste.compareTo(grootste2));
 	}
+
 	@Test
 	public void findAantalDocentenPerWedde() {
 		List<AantalDocentenPerWedde> aantalDocentenPerWedde = repository.findAantalDocentenPerWedde();
-		long aantalUniekeWeddes = super.jdbcTemplate.queryForObject("select count(distinct wedde) from docenten", Long.class);
-		assertEquals(aantalUniekeWeddes , aantalDocentenPerWedde.size());
+		long aantalUniekeWeddes = super.jdbcTemplate.queryForObject("select count(distinct wedde) from docenten",
+				Long.class);
+		assertEquals(aantalUniekeWeddes, aantalDocentenPerWedde.size());
 		long aantalDocentenMetWedde1000 = super.countRowsInTableWhere(DOCENTEN, "wedde=1000");
 		aantalDocentenPerWedde.stream()
-		 .filter(aantalPerWedde -> aantalPerWedde.getWedde().compareTo(BigDecimal.valueOf(1_000)) == 0)
-		 .forEach(aantalPerWedde -> assertEquals(aantalDocentenMetWedde1000, aantalPerWedde.getAantal()));
+				.filter(aantalPerWedde -> aantalPerWedde.getWedde().compareTo(BigDecimal.valueOf(1_000)) == 0)
+				.forEach(aantalPerWedde -> assertEquals(aantalDocentenMetWedde1000, aantalPerWedde.getAantal()));
 	}
+
 	@Test
 	public void algemeneOpslag() {
 		int aantalAangepast = repository.algemeneOpslag(BigDecimal.TEN);
 		assertEquals(super.countRowsInTable(DOCENTEN), aantalAangepast);
-		BigDecimal nieuweWedde = super.jdbcTemplate.queryForObject(
-				"select wedde from docenten where id=?", BigDecimal.class, idVanTestMan());
+		BigDecimal nieuweWedde = super.jdbcTemplate.queryForObject("select wedde from docenten where id=?",
+				BigDecimal.class, idVanTestMan());
 		assertEquals(0, BigDecimal.valueOf(1_100).compareTo(nieuweWedde));
 	}
+
 	@Test
 	public void bijnamenLezen() {
 		Docent docent = repository.read(idVanTestMan()).get();
 		assertEquals(1, docent.getBijnamen().size());
 		assertTrue(docent.getBijnamen().contains("test"));
 	}
+
 	@Test
 	public void bijnaamToevoegen() {
 		manager.persist(campus);
 		repository.create(docent);
 		docent.addBijnaam("test");
 		manager.flush();
-		assertEquals("test", super.jdbcTemplate.queryForObject("select bijnaam from docentenbijnamen where docentid=?", String.class, docent.getId()));
+		assertEquals("test", super.jdbcTemplate.queryForObject("select bijnaam from docentenbijnamen where docentid=?",
+				String.class, docent.getId()));
 	}
+
 	@Test
 	public void campusLazyLoaded() {
 		Docent docent = repository.read(idVanTestMan()).get();
 		assertEquals("test", docent.getCampus().getNaam());
 	}
-}
 
+	@Test
+	public void verantwoordelijkhedenLezen() {
+		Docent docent = repository.read(idVanTestMan()).get();
+		assertEquals(1, docent.getVerantwoordelijkheden().size());
+		assertTrue(docent.getVerantwoordelijkheden().contains(new Verantwoordelijkheid("test")));
+	}
+
+	@Test
+	public void verantwoordelijkheidToevoegen() {
+		Verantwoordelijkheid verantwoordelijkheid = new Verantwoordelijkheid("test2");
+		manager.persist(verantwoordelijkheid);
+		manager.persist(campus);
+		repository.create(docent);
+		docent.add(verantwoordelijkheid);
+		manager.flush();
+		assertEquals(verantwoordelijkheid.getId(),
+				super.jdbcTemplate.queryForObject(
+						"select verantwoordelijkheidid from docentenverantwoordelijkheden " + "where docentid=?",
+						Long.class, docent.getId()).longValue());
+	}
+}

@@ -73,16 +73,15 @@ public class Campus implements Serializable {
 		if (docent == null) {
 			throw new NullPointerException();
 		}
-//		boolean toegevoegd = docenten.add(docent);
-//		Campus oudeCampus = docent.getCampus();
-//		if(oudeCampus != null && oudeCampus != this) {
-//			oudeCampus.docenten.remove(docent);
-//		}
-//		if (this != oudeCampus) {
-//			docent.setCampus(this);
-//		}
-		return docenten.add(docent);
-		//return toegevoegd;
+		boolean toegevoegd = docenten.add(docent);
+		Campus oudeCampus = docent.getCampus();
+		if(oudeCampus != null && oudeCampus != this) {
+			oudeCampus.docenten.remove(docent);
+		}
+		if (this != oudeCampus) {
+			docent.setCampus(this);
+		}
+		return toegevoegd;
 	}
 
 	@Override

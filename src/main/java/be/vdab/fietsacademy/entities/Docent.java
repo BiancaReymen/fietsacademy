@@ -19,6 +19,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
@@ -48,6 +49,9 @@ public class Docent implements Serializable {
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "campusId")
 	private Campus campus;
+	@ManyToMany(mappedBy = "docenten")
+	private Set<Verantwoordelijkheid> verantwoordelijkheden  = new LinkedHashSet<>();
+	
 	
 
 	protected Docent() {
@@ -99,12 +103,12 @@ public class Docent implements Serializable {
 		if (campus==null) {
 			throw new NullPointerException();
 		}
-		if(!campus.getDocenten().contains(campus)) {
+		if(!campus.getDocenten().contains(this)) {
 			campus.add(this);
 		}
 		this.campus = campus;
 	}
-
+	
 	public void opslag(BigDecimal percentage) {
 		if (percentage.compareTo(BigDecimal.ZERO) <= 0) {
 			throw new IllegalArgumentException();
@@ -126,6 +130,24 @@ public class Docent implements Serializable {
 
 	public boolean removeBijnaam(String bijnaam) {
 		return bijnamen.remove(bijnaam);
+	}
+	
+	public boolean add(Verantwoordelijkheid verantwoordelijkheid) {
+		boolean toegevoegd = verantwoordelijkheden.add(verantwoordelijkheid);
+		if (!verantwoordelijkheid.getDocenten().contains(this)) {
+			verantwoordelijkheid.add(this);
+		}
+		return toegevoegd;
+	}
+	public boolean remove(Verantwoordelijkheid verantwoordelijkheid) {
+		boolean verwijderd = verantwoordelijkheden.remove(verantwoordelijkheid);
+		if (verantwoordelijkheid.getDocenten().contains(this)) {
+			verantwoordelijkheid.remove(this);
+		}
+		return verwijderd;
+	}
+	public Set<Verantwoordelijkheid> getVerantwoordelijkheden() {
+		return Collections.unmodifiableSet(verantwoordelijkheden);
 	}
 	@Override
 	public boolean equals(Object object) {
