@@ -21,15 +21,19 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
+import javax.persistence.NamedAttributeNode;
+import javax.persistence.NamedEntityGraph;
+import javax.persistence.NamedSubgraph;
 import javax.persistence.Table;
 
 import be.vdab.fietsacademy.enums.Geslacht;
 
 @Entity
 @Table(name = "docenten")
-// @NamedQuery(name = "Docent.findByWeddeBetween", query = "select d from Docent
-// d where d.wedde between :van and :tot order by d.wedde, d.id")
-
+@NamedEntityGraph(name = "Docent.metCampus", attributeNodes = @NamedAttributeNode("campus"))
+@NamedEntityGraph(name = "Docent.metCampusEnVerantwoordelijkheden", attributeNodes = { @NamedAttributeNode("campus"),
+		@NamedAttributeNode("verantwoordelijkheden") })
+@NamedEntityGraph(name = "Docent.metCampusEnManager", attributeNodes = @NamedAttributeNode(value = "campus", subgraph = "metManager"), subgraphs = @NamedSubgraph(name = "metManager", attributeNodes = @NamedAttributeNode("manager")))
 public class Docent implements Serializable {
 	private static final long serialVersionUID = 1L;
 	@Id
@@ -50,16 +54,18 @@ public class Docent implements Serializable {
 	@JoinColumn(name = "campusId")
 	private Campus campus;
 	@ManyToMany(mappedBy = "docenten")
-	private Set<Verantwoordelijkheid> verantwoordelijkheden  = new LinkedHashSet<>();
-	
+	private Set<Verantwoordelijkheid> verantwoordelijkheden = new LinkedHashSet<>();
+	public static final String MET_CAMPUS = "Docent.metCampus";
 	
 
 	protected Docent() {
 		super();
 	}
 
-	public Docent(String voornaam, String familienaam, BigDecimal wedde, String emailAdres, Geslacht geslacht, Campus campus) {
-	//public Docent(String voornaam, String familienaam, BigDecimal wedde, String emailAdres, Geslacht geslacht) {	
+	public Docent(String voornaam, String familienaam, BigDecimal wedde, String emailAdres, Geslacht geslacht,
+			Campus campus) {
+		// public Docent(String voornaam, String familienaam, BigDecimal wedde, String
+		// emailAdres, Geslacht geslacht) {
 		super();
 		this.voornaam = voornaam;
 		this.familienaam = familienaam;
@@ -93,22 +99,21 @@ public class Docent implements Serializable {
 	public String getEmailAdres() {
 		return emailAdres;
 	}
-	
 
 	public Campus getCampus() {
 		return campus;
 	}
 
 	public void setCampus(Campus campus) {
-		if (campus==null) {
+		if (campus == null) {
 			throw new NullPointerException();
 		}
-		if(!campus.getDocenten().contains(this)) {
+		if (!campus.getDocenten().contains(this)) {
 			campus.add(this);
 		}
 		this.campus = campus;
 	}
-	
+
 	public void opslag(BigDecimal percentage) {
 		if (percentage.compareTo(BigDecimal.ZERO) <= 0) {
 			throw new IllegalArgumentException();
@@ -131,7 +136,7 @@ public class Docent implements Serializable {
 	public boolean removeBijnaam(String bijnaam) {
 		return bijnamen.remove(bijnaam);
 	}
-	
+
 	public boolean add(Verantwoordelijkheid verantwoordelijkheid) {
 		boolean toegevoegd = verantwoordelijkheden.add(verantwoordelijkheid);
 		if (!verantwoordelijkheid.getDocenten().contains(this)) {
@@ -139,6 +144,7 @@ public class Docent implements Serializable {
 		}
 		return toegevoegd;
 	}
+
 	public boolean remove(Verantwoordelijkheid verantwoordelijkheid) {
 		boolean verwijderd = verantwoordelijkheden.remove(verantwoordelijkheid);
 		if (verantwoordelijkheid.getDocenten().contains(this)) {
@@ -146,19 +152,22 @@ public class Docent implements Serializable {
 		}
 		return verwijderd;
 	}
+
 	public Set<Verantwoordelijkheid> getVerantwoordelijkheden() {
 		return Collections.unmodifiableSet(verantwoordelijkheden);
 	}
+
 	@Override
 	public boolean equals(Object object) {
-		if (! (object instanceof Docent)) {
+		if (!(object instanceof Docent)) {
 			return false;
 		}
-		if(emailAdres == null) {
+		if (emailAdres == null) {
 			return false;
 		}
-		return emailAdres.equalsIgnoreCase(((Docent)object).emailAdres);
+		return emailAdres.equalsIgnoreCase(((Docent) object).emailAdres);
 	}
+
 	@Override
 	public int hashCode() {
 		return emailAdres == null ? 0 : emailAdres.toLowerCase().hashCode();
